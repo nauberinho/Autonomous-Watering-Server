@@ -12,8 +12,8 @@ var http = require('http').Server( app );
 /* MongoDB + Mongoose */
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-//mongoose.connect('mongodb://sigma-itc-admin:sigma2013!@ds133465.mlab.com:33465/sigma-itc-autonomous-watering', {useMongoClient:true});
-mongoose.connect('mongodb://localhost/sigma-watering', {useMongoClient:true});
+mongoose.connect('mongodb://sigma-itc-admin:sigma2013!@ds133465.mlab.com:33465/sigma-itc-autonomous-watering', {useMongoClient:true});
+//mongoose.connect('mongodb://localhost/sigma-watering', {useMongoClient:true});
 
 /* Uuid Generator */
 const uuidv4 = require('uuid/v4');
