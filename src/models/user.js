@@ -1,8 +1,7 @@
 'use strict';
 var mongoose = require('mongoose');
-var bcrypt = require('bcrypt');
-const saltRounds = 10;
 var Plant = require('./../models/plant.js');
+
 
 /*   User(username, password) > [station](name, id) > [Plants](name, id, slot) > [Measurements](time, value)   */
 
@@ -23,11 +22,13 @@ var userSchema = mongoose.Schema({
                   date: {type: Date, default: new Date()},
                   humidity_measurements: [
                           {
-                                value: {type: Number, default: 0.5},
+                                value: {type: Number, default: 0.5}, // Format: Minutes.
                                 date: {type: String, default: "2017-11-22T10:19:43"}
-                          },
-                      { value: 0.5, date: "2017-11-22T10:19:43" }
-                  ]
+                          }
+                  ],
+                  settings: {
+                      water_frequency: {type: Number, required: false, default: 1}
+                  }
               }
           ],
           settings: {
@@ -49,30 +50,21 @@ var User = module.exports = mongoose.model('User', userSchema);
         /* User.findOne({username:username}, (err, user) => {
           if(user) {callback('User already exists')}
         }) */
-        bcrypt.hash(password, saltRounds, (err, hash) => {
-            if(!err) {
+
                 password = hash;
                 var newUser = new User();
                 User.create(newUser, callback)
                 newUser.username = username;
                 newUser.password = password;
                 //newUser.save();
-            } else {console.log(err)};
-        });
+
     };
 
     /*****----LOG IN USER----******/
     module.exports.loginUser = (payload, callback) =>  {
         User.findOne({username:payload.username}, (err, user) => {
             if(user) {
-                bcrypt.compare(payload.password, user.password, (err, res) => {
-                    if(res) {
-                        console.log('Password matched stored hash. \nLogging in.')
-                        // Create sessions
-                    } else {
-                        console.log('Password did not match stored hash. \nTry again.')
-                    }
-                });
+
             } else {
                 console.log('User ' + payload.username + ' could not be found.');
             }
@@ -100,6 +92,7 @@ var User = module.exports = mongoose.model('User', userSchema);
 
         /*****----RETURN USERS STATIONS----******/
         module.exports.getStations = (payload, callback) => {
+            console.log('getting stations')
           var username = payload.user.username;
           User.findOne({username:username}, (err, user) => {
             if(user) {
@@ -205,7 +198,7 @@ var User = module.exports = mongoose.model('User', userSchema);
         };
 
 
-    /*************----PLANT FUNCTIONS----*************/
+    /***************----PLANT FUNCTIONS----**************/
 
     /*****----ADD A PLANT TO A STATION----******/
     module.exports.addPlant = (payload, callback) => {
@@ -229,7 +222,7 @@ var User = module.exports = mongoose.model('User', userSchema);
         User.findOne({username: username}, (err, user) => {
             let stations = user.stations;
             for(let station in stations){
-                if(stations[station].name === stationName){
+               if (stations[station] && stations[station].name === stationName){
                     stations = stations[station].plants.filter((plant) => {
                                 return plant.name !== plantName;
                     });

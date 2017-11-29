@@ -9,11 +9,13 @@ var session = require('express-session');
 /* Socket.io */
 var http = require('http').Server( app );
 
+var multer  = require('multer');
+
 /* MongoDB + Mongoose */
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://sigma-itc-admin:sigma2013!@ds133465.mlab.com:33465/sigma-itc-autonomous-watering', {useMongoClient:true});
-//mongoose.connect('mongodb://localhost/sigma-watering', {useMongoClient:true});
+//mongoose.connect('mongodb://sigma-itc-admin:sigma2013!@ds133465.mlab.com:33465/sigma-itc-autonomous-watering', {useMongoClient:true});
+mongoose.connect('mongodb://localhost/sigma-watering', {useMongoClient:true});
 
 /* Uuid Generator */
 const uuidv4 = require('uuid/v4');
@@ -24,7 +26,7 @@ var jsonParser = bodyParser.json({ type: 'application/json' });
 app.use(jsonParser);
 
 /* Express settings */
-app.set('port', (process.env.PORT || 3000));
+app.set('port', 3000);
 app.use(require('body-parser').json({type: 'application/json'})); 
 app.use((req, res, next) => {res.header("Access-Control-Allow-Origin", "*"); res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"); next();});
 
@@ -39,14 +41,34 @@ app.use(session({
   },
 }));
 
+
+// configuring Multer to use files directory for storing files
+// this is important because later we'll need to access file path
+const storage = multer.diskStorage({
+    destination: './files',
+    filename(req, file, cb) {
+        cb(null, `${new Date()}-${file.originalname}`);
+    },
+});
+
+const upload = multer({ storage });
+
 /********----ROUTES FOR DEV MODE----**************/
-app.get('/',                  (req, res) => { res.sendFile("./src/routes/client/index.html", {root:__dirname}); });
+//app.get('/',                  (req, res) => { res.sendFile("./src/routes/client/index.html", {root:__dirname}); });
+app.get('/',                  (req, res) => { res.send("Dev site")});
 app.get('/dev',               (req, res) => { /*console.log(req.session);*/ res.sendFile("./src/routes/dev/index.html", {root:__dirname});});
 app.get('/api/plants/postmeasurements',    (req, res) => { res.sendFile("./src/routes/api/add.html",    {root:__dirname}); });
 
 /* Module to handle Socket.io requests */
 var SocketHandler = require('./src/exports/SocketHandler.js');
 
+// express route where we receive files from the client
+// passing multer middleware
+app.post('/user-add-plant-image', upload.single('file'), (req, res) => {
+    const file = req.file; // file passed from client
+    console.log(file)
+    const meta = req.body; // all other values passed from the client, like name, etc..
+})
 
 /******************--------SYSTEM/AUTHENTICATION POSTS-----************/
     app.post('/api/system-add-user', (req, res) => {
@@ -66,8 +88,6 @@ var SocketHandler = require('./src/exports/SocketHandler.js');
         User.removeUser(payload, (err, success) => {
             success ? res.send(success) : (err) => {throw err}});
     });
-
-
 
 /********************----USER-------****************************/
 
