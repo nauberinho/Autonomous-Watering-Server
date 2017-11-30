@@ -251,6 +251,7 @@ var User = module.exports = mongoose.model('User', userSchema);
         )
     };
 
+    /*************************RETURN ONE STATION*******************/
     module.exports.chipGetStation = (payload, callback) =>  {
         User.find({"stations":{"$elemMatch":{"key": payload.key}}},
             (err, success) => {

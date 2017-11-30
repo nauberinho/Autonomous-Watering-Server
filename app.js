@@ -64,9 +64,9 @@ var SocketHandler = require('./src/exports/SocketHandler.js');
 
 // express route where we receive files from the client
 // passing multer middleware
-app.post('/user-add-plant-image', upload.single('file'), (req, res) => {
+app.post('/api/user-add-plant-image', upload.single('file'), (req, res) => {
     const file = req.file; // file passed from client
-    console.log(file)
+    console.log(file, req.body)
     const meta = req.body; // all other values passed from the client, like name, etc..
 })
 
@@ -90,7 +90,6 @@ app.post('/user-add-plant-image', upload.single('file'), (req, res) => {
     });
 
 /********************----USER-------****************************/
-
     /*************----STATION POSTS----*************/
     app.post('/api/user-add-station', (req, res) => {
         var payload = req.body;
@@ -118,7 +117,6 @@ app.post('/user-add-plant-image', upload.single('file'), (req, res) => {
             success ? res.send(success) : (err) => {throw err}})
     });
 
-
     /*************----PLANT POSTS----************/
     app.post('/api/user-add-plant', (req, res) => {
         var payload = req.body;
@@ -136,7 +134,7 @@ app.post('/user-add-plant-image', upload.single('file'), (req, res) => {
             success ? res.send(success) : (err) => {throw err}})
     });
 
-/************************----CHIP----***********************/
+/************************----CHIP POSTS----***********************/
     app.post('/api/getStation', (req, res) => {
         var payload = req.body;
         User.chipGetStation(payload, (station) => {
